@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Pipeline Console — Clinical AI Multi-Agent System</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="/styles.css" />
+</head>
+<body>
+
+<div class="scanline" aria-hidden="true"></div>
+
+<header class="topbar">
+  <div class="topbar__brand">
+    <span class="topbar__mark" aria-hidden="true"></span>
+    <span class="eyebrow">PIPELINE // CONSOLE</span>
+  </div>
+  <div class="topbar__status" id="apiStatus">
+    <span class="dot dot--unknown" id="apiStatusDot"></span>
+    <span id="apiStatusText">checking backend…</span>
+  </div>
+</header>
+
+<main class="layout">
+
+  <!-- ============ SIDEBAR ============ -->
+  <aside class="sidebar">
+    <section class="panel">
+      <h2 class="panel__title">Case selection</h2>
+      <label class="field">
+        <span class="field__label">Sample patient</span>
+        <select id="patientSelect" class="select"></select>
+      </label>
+
+      <div class="field field--row">
+        <label class="toggle">
+          <input type="checkbox" id="mockToggle" />
+          <span class="toggle__track" aria-hidden="true"></span>
+          <span class="toggle__label">Mock mode <em>(no API calls)</em></span>
+        </label>
+      </div>
+
+      <button id="runBtn" class="btn btn--primary">
+        <span id="runBtnLabel">Run pipeline</span>
+      </button>
+
+      <p class="hint" id="modeHint">No local fine-tuned model found — runs will use mock mode automatically.</p>
+    </section>
+
+    <section class="panel panel--rail">
+      <h2 class="panel__title">Agent pipeline</h2>
+      <ol class="rail" id="rail">
+        <!-- stage rows injected by app.js -->
+      </ol>
+    </section>
+  </aside>
+
+  <!-- ============ REPORT ============ -->
+  <section class="report" id="report" aria-live="polite">
+    <div class="report__empty" id="reportEmpty">
+      <p class="report__empty-eyebrow">No case run yet</p>
+      <h1>Select a patient and run the pipeline.</h1>
+      <p class="report__empty-body">
+        Eight agents will process the case in sequence — intake normalization,
+        NLP entity extraction, an ML risk model, RAG evidence retrieval, a
+        drug-interaction check, guideline verification, clinical reasoning,
+        and final report generation. Results appear here as each stage completes.
+      </p>
+    </div>
+
+    <div class="report__body" id="reportBody" hidden>
+
+      <div class="report__header">
+        <div>
+          <p class="report__eyebrow" id="reportEyebrow">Case report</p>
+          <h1 id="patientName">—</h1>
+          <p class="report__meta" id="patientMeta">—</p>
+        </div>
+        <div class="risk-badge" id="riskBadge">
+          <span class="risk-badge__label">Risk</span>
+          <span class="risk-badge__value" id="riskValue">—</span>
+        </div>
+      </div>
+
+      <div class="riskbar" aria-hidden="true">
+        <div class="riskbar__fill" id="riskbarFill"></div>
+      </div>
+
+      <div class="disclaimer">
+        ⚠ Demo project — synthetic data and a toy ML model. Not for real clinical use.
+      </div>
+
+      <div class="grid">
+
+        <div class="card">
+          <h3 class="card__title">01 · Patient profile</h3>
+          <dl class="deflist" id="profileList"></dl>
+        </div>
+
+        <div class="card">
+          <h3 class="card__title">02 · Extracted entities</h3>
+          <dl class="deflist" id="entitiesList"></dl>
+        </div>
+
+        <div class="card">
+          <h3 class="card__title">03 · Risk factors</h3>
+          <ul class="taglist" id="riskFactors"></ul>
+        </div>
+
+        <div class="card">
+          <h3 class="card__title">05 · Drug safety</h3>
+          <ul class="alertlist" id="drugAlerts"></ul>
+        </div>
+
+      </div>
+
+      <div class="card card--wide">
+        <h3 class="card__title">04 · Retrieved evidence</h3>
+        <div class="evidence" id="evidenceList"></div>
+      </div>
+
+      <div class="card card--wide">
+        <h3 class="card__title">06 · Guideline verification</h3>
+        <p id="verificationNotes" class="prose"></p>
+        <ul class="taglist" id="verificationCitations"></ul>
+      </div>
+
+      <div class="card card--wide card--priority" id="reasoningCard">
+        <div class="card__titlerow">
+          <h3 class="card__title">07 · Clinical reasoning</h3>
+          <span class="priority-chip" id="priorityChip">—</span>
+        </div>
+        <p id="assessmentText" class="prose"></p>
+        <ul class="recs" id="recommendationsList"></ul>
+      </div>
+
+      <details class="trace-log">
+        <summary>08 · Execution trace</summary>
+        <pre id="traceLog"></pre>
+      </details>
+
+    </div>
+  </section>
+
+</main>
+
+<script src="/app.js"></script>
+</body>
+</html>
