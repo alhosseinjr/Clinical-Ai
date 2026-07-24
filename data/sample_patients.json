@@ -1,0 +1,52 @@
+[
+  {
+    "patient_id": "P001",
+    "name": "John Smith",
+    "age": 65,
+    "sex": "M",
+    "comorbidities": ["hypertension", "diabetes"],
+    "smoker": false,
+    "current_medications": ["metformin", "lisinopril"],
+    "intake_note": "65-year-old male with history of hypertension and diabetes presents for routine follow-up."
+  },
+  {
+    "patient_id": "P002",
+    "name": "Sarah Johnson",
+    "age": 58,
+    "sex": "F",
+    "comorbidities": ["hyperlipidemia"],
+    "smoker": true,
+    "current_medications": ["atorvastatin"],
+    "intake_note": "58-year-old female smoker with elevated cholesterol."
+  },
+  {
+    "patient_id": "P003",
+    "name": "Michael Chen",
+    "age": 72,
+    "sex": "M",
+    "comorbidities": ["coronary artery disease", "hypertension"],
+    "smoker": false,
+    "current_medications": ["aspirin", "metoprolol", "lisinopril"],
+    "intake_note": "72-year-old male with CAD and hypertension presents with chest pain."
+  },
+  {
+    "patient_id": "P004",
+    "name": "Emily Davis",
+    "age": 45,
+    "sex": "F",
+    "comorbidities": [],
+    "smoker": false,
+    "current_medications": [],
+    "intake_note": "45-year-old female presents for annual physical. No significant complaints."
+  },
+  {
+    "patient_id": "P005",
+    "name": "David Okoye",
+    "age": 62,
+    "sex": "M",
+    "comorbidities": ["hyperlipidemia"],
+    "smoker": false,
+    "current_medications": ["atorvastatin"],
+    "intake_note": "62-year-old male here for a follow-up on cholesterol management. Recent lipid panel shows persistently elevated LDL despite atorvastatin. Reports no chest pain or shortness of breath. Strong family history of coronary artery disease -- both a brother and father had bypass surgery in their 60s. Walks daily, no smoking history."
+  }
+]
