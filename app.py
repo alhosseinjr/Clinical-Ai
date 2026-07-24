@@ -15,9 +15,13 @@ load_dotenv()
 from src.graph import build_graph
 
 # --- Configuration ---
-PATIENTS_FILE = os.path.join(os.path.dirname(__file__), "data", "sample_patients.json")
+# Get the absolute path to the project root
+ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+PATIENTS_FILE = os.path.join(ROOT_DIR, "data", "sample_patients.json")
 
 def load_patients():
+    if not os.path.exists(PATIENTS_FILE):
+        raise FileNotFoundError(f"Patients file not found at: {PATIENTS_FILE}")
     with open(PATIENTS_FILE, "r", encoding="utf-8") as f:
         return json.load(f)
 
@@ -80,7 +84,7 @@ if patient_options:
         st.markdown("### 📄 Generated Report")
         st.markdown(st.session_state["report"])
         
-        with st.expander(" View System Trace / Logs"):
+        with st.expander("🔍 View System Trace / Logs"):
             for log in st.session_state.get("trace", []):
                 st.text(log)
 else:
