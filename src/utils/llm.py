@@ -26,6 +26,9 @@ otherwise regenerate byte-identical output.
 import hashlib
 import os
 from typing import Optional
+import torch
+from transformers import AutoTokenizer, AutoModelForCausalLM
+from peft import PeftModel # <--- ADD THIS LINE
 
 _model = None
 _tokenizer = None
@@ -70,45 +73,38 @@ def _load_model():
     base_model_id = os.environ.get("BASE_MODEL_ID", "Qwen/Qwen2.5-0.5B-Instruct")
 
     try:
-        print("Importing torch...")
         import torch
-        print("Torch imported.")
-
-        print("Importing transformers...")
         from transformers import AutoModelForCausalLM, AutoTokenizer
-        print("Transformers imported.")
+        from peft import PeftModel
 
         _device = _pick_device()
-        _dtype = _pick_dtype(_device)
+        _dtype = _pick_dtype(_device) or torch.float16 # Fallback just in case
 
-        print(f"Loading model on {_device}...")
+        print(f"Loading model on {_device} with dtype {_dtype}...")
 
-        if os.path.isdir(merged_path):
-            ...
+        # 1. Try loading the merged model first
+        if os.path.isdir(merged_path) and os.path.exists(os.path.join(merged_path, "config.json")):
+            print(f"Loading merged model from {merged_path}...")
+            _tokenizer = AutoTokenizer.from_pretrained(merged_path)
+            _model = AutoModelForCausalLM.from_pretrained(merged_path, dtype=_dtype)
+            print("Merged model loaded.")
 
+        # 2. Otherwise, load Base + LoRA Adapter
         elif os.path.isdir(adapter_path):
-
-            print("Importing PEFT...")
-            from peft import PeftModel
-            print("PEFT imported.")
-
-            print("Loading tokenizer...")
+            print(f"Loading LoRA adapter from {adapter_path}...")
             _tokenizer = AutoTokenizer.from_pretrained(adapter_path)
-
-            print("Tokenizer loaded.")
-
-            print("Loading base model...")
+            
+            print(f"Loading base model: {base_model_id}...")
             base = AutoModelForCausalLM.from_pretrained(
-            base_model_id,
-            dtype=_dtype,
+                base_model_id,
+                torch_dtype=_dtype,
+                device_map="auto" # Let transformers handle the device placement
             )
 
-            print("Base model loaded.")
-
-            print("Loading LoRA adapter...")
+            print("Applying LoRA adapter...")
             _model = PeftModel.from_pretrained(base, adapter_path)
-
-            print("Model loaded.")
+            print("Model loaded successfully!")
+            
         else:
             _model_unavailable_reason = (
                 f"No local model found (checked '{merged_path}' and '{adapter_path}'). "
@@ -116,11 +112,11 @@ def _load_model():
             )
             return
 
-        _model.to(_device)
         _model.eval()
 
-    except Exception as e:  # missing deps, OOM, corrupt checkpoint, etc.
+    except Exception as e:
         _model_unavailable_reason = f"Local model failed to load ({e})."
+        print(f"Error loading model: {e}")
 
 
 def _cache_key(system_prompt: str, user_prompt: str, max_tokens: int) -> str:
