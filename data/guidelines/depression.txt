@@ -1,0 +1,26 @@
+[SAMPLE / EDUCATIONAL GUIDELINE SNIPPET - NOT FOR CLINICAL USE]
+
+Topic: Depression - General Overview
+
+Depression severity is commonly assessed using structured screening tools
+alongside clinical interview, considering duration, functional impact, and
+associated symptoms (sleep, appetite, concentration, and, critically, any
+thoughts of self-harm).
+
+Mild depression is commonly managed initially with psychotherapy (such as
+cognitive behavioral therapy) and lifestyle measures (sleep hygiene,
+exercise, social engagement), while moderate-to-severe depression is
+commonly discussed as benefiting from combined psychotherapy and medication.
+
+SSRIs (such as sertraline) are commonly described as a typical first-line
+medication class due to a generally favorable side-effect profile, with
+response usually assessed over several weeks rather than immediately.
+Combining SSRIs with other agents that affect bleeding (such as NSAIDs or
+anticoagulants) is commonly flagged for modestly increased bleeding risk.
+
+Any indication of suicidal ideation or intent is commonly treated as
+requiring immediate, direct safety assessment and escalation, separate from
+routine follow-up scheduling.
+
+This file is a simplified, illustrative summary written for a software demo
+and should never be used to make real treatment decisions.

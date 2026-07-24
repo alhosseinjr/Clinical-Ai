@@ -1,0 +1,20 @@
+[SAMPLE / EDUCATIONAL GUIDELINE SNIPPET - NOT FOR CLINICAL USE]
+
+Topic: Type 2 Diabetes Mellitus - General Overview
+
+Type 2 diabetes management typically combines lifestyle intervention (diet, physical
+activity, weight management) with pharmacologic therapy when glycemic targets are
+not met through lifestyle changes alone.
+
+Metformin is commonly referenced as a typical starting oral therapy in the absence
+of contraindications such as significant renal impairment. Additional agents may be
+layered on based on individual factors like cardiovascular risk, weight goals, and
+kidney function.
+
+Patients with type 2 diabetes are frequently monitored for related complications,
+including cardiovascular disease, given the elevated baseline cardiovascular risk
+associated with the condition. Concurrent risk factors such as smoking, obesity, or
+elevated blood pressure typically warrant closer, more frequent follow-up.
+
+This file is a simplified, illustrative summary written for a software demo and
+should never be used to make real treatment decisions.

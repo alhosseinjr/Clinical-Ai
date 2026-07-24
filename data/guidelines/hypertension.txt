@@ -1,0 +1,25 @@
+[SAMPLE / EDUCATIONAL GUIDELINE SNIPPET - NOT FOR CLINICAL USE]
+
+Topic: Hypertension (High Blood Pressure) - General Overview
+
+Blood pressure is commonly categorized as normal, elevated, stage 1 hypertension, or
+stage 2 hypertension based on systolic and diastolic readings. Elevated and stage 1
+readings are typically addressed first with lifestyle modification: reduced sodium
+intake, regular aerobic activity, weight management, limited alcohol use, and smoking
+cessation.
+
+Stage 2 hypertension, or stage 1 hypertension with additional cardiovascular risk
+factors (diabetes, prior cardiovascular disease, chronic kidney disease, smoking),
+is generally considered for combination lifestyle changes plus pharmacologic therapy.
+
+Common first-line drug classes discussed in general references include thiazide
+diuretics, ACE inhibitors, ARBs, and calcium channel blockers. Beta blockers are
+often considered when a compelling comorbid indication exists, such as coexisting
+coronary artery disease or arrhythmia.
+
+Patients who smoke and have elevated blood pressure are frequently flagged as
+higher cardiovascular risk and are often prioritized for closer follow-up and
+risk-factor counseling, including smoking cessation support.
+
+This file is a simplified, illustrative summary written for a software demo and
+should never be used to make real treatment decisions.

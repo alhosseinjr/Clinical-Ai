@@ -1,0 +1,28 @@
+[SAMPLE / EDUCATIONAL GUIDELINE SNIPPET - NOT FOR CLINICAL USE]
+
+Topic: COPD (Chronic Obstructive Pulmonary Disease) - General Overview
+
+COPD management is commonly organized around baseline maintenance therapy
+plus a separate plan for flares (exacerbations). Smoking cessation is
+typically described as the single most important intervention at any stage,
+since continued smoking accelerates lung function decline.
+
+Maintenance therapy is generally stepped based on symptom burden and flare
+history: long-acting bronchodilators (anticholinergics like tiotropium
+and/or beta-agonists) are commonly first-line, with inhaled corticosteroids
+added for patients with frequent flares or an overlapping asthma-like
+picture.
+
+During flares, short courses of oral corticosteroids (such as prednisone)
+and increased short-acting bronchodilator use are commonly discussed,
+alongside antibiotics when a bacterial component is suspected. Frequent or
+repeated oral steroid courses are commonly flagged for monitoring, since
+cumulative steroid exposure carries its own risks (bone density, blood
+sugar, adrenal suppression).
+
+Worsening shortness of breath, increased rescue inhaler use, or change in
+sputum are commonly used as signals to reassess whether maintenance therapy
+needs escalation or whether a flare is in progress.
+
+This file is a simplified, illustrative summary written for a software demo
+and should never be used to make real treatment decisions.

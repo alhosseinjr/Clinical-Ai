@@ -1,0 +1,28 @@
+[SAMPLE / EDUCATIONAL GUIDELINE SNIPPET - NOT FOR CLINICAL USE]
+
+Topic: GERD (Gastroesophageal Reflux Disease) - General Overview
+
+GERD is commonly identified from symptoms like heartburn and regurgitation,
+often worse after large or fatty meals and when lying down. Lifestyle
+measures are typically recommended first: smaller meals, avoiding trigger
+foods, not lying down soon after eating, weight management, and elevating
+the head of the bed for nighttime symptoms.
+
+Proton pump inhibitors (such as omeprazole) are commonly used as first-line
+pharmacologic therapy for persistent symptoms, usually trialed for several
+weeks before reassessing response. Long-term PPI use is commonly flagged for
+periodic review, since prolonged use has been associated in some references
+with modestly reduced absorption of certain nutrients and medications.
+
+Chest discomfort that could plausibly be cardiac in origin (exertional,
+radiating, associated with shortness of breath) is commonly emphasized as
+needing to be distinguished from GERD-related discomfort before assuming a
+gastrointestinal cause, particularly in patients with cardiovascular risk
+factors.
+
+Alarm symptoms such as difficulty swallowing, unintended weight loss, or GI
+bleeding are commonly flagged as warranting further evaluation rather than
+continued empiric treatment.
+
+This file is a simplified, illustrative summary written for a software demo
+and should never be used to make real treatment decisions.

@@ -1,52 +1,407 @@
 [
   {
     "patient_id": "P001",
-    "name": "John Smith",
-    "age": 65,
+    "name": "John Doe",
+    "age": 58,
     "sex": "M",
-    "comorbidities": ["hypertension", "diabetes"],
-    "smoker": false,
-    "current_medications": ["metformin", "lisinopril"],
-    "intake_note": "65-year-old male with history of hypertension and diabetes presents for routine follow-up."
+    "vitals": {
+      "systolic_bp": 148,
+      "diastolic_bp": 94,
+      "heart_rate": 88,
+      "bmi": 31.2,
+      "cholesterol_total": 245
+    },
+    "cardiac_workup": {
+      "chest_pain_type": 0,
+      "fasting_blood_sugar_high": true,
+      "resting_ecg": 1,
+      "max_heart_rate": 138,
+      "exercise_induced_angina": true,
+      "st_depression": 1.8,
+      "st_slope": 1,
+      "num_major_vessels": 1,
+      "thalassemia": 3
+    },
+    "comorbidities": [
+      "type_2_diabetes",
+      "obesity"
+    ],
+    "smoker": true,
+    "current_medications": [
+      "metformin",
+      "aspirin"
+    ],
+    "intake_note": "Patient is a 58-year-old male presenting with recurring headaches and fatigue over the past two weeks. Reports occasional chest tightness on exertion. History of type 2 diabetes managed with metformin. Currently takes daily low-dose aspirin. Blood pressure elevated at today's visit. Smoker, roughly 1 pack/day for 20 years. Family history of coronary artery disease (father, MI at 62)."
   },
   {
     "patient_id": "P002",
-    "name": "Sarah Johnson",
-    "age": 58,
+    "name": "Maria Alvarez",
+    "age": 34,
     "sex": "F",
-    "comorbidities": ["hyperlipidemia"],
-    "smoker": true,
-    "current_medications": ["atorvastatin"],
-    "intake_note": "58-year-old female smoker with elevated cholesterol."
+    "vitals": {
+      "systolic_bp": 118,
+      "diastolic_bp": 76,
+      "heart_rate": 72,
+      "bmi": 23.4,
+      "cholesterol_total": 190
+    },
+    "cardiac_workup": {
+      "chest_pain_type": 3,
+      "fasting_blood_sugar_high": false,
+      "resting_ecg": 0,
+      "max_heart_rate": 172,
+      "exercise_induced_angina": false,
+      "st_depression": 0.0,
+      "st_slope": 0,
+      "num_major_vessels": 0,
+      "thalassemia": 2
+    },
+    "comorbidities": [
+      "asthma"
+    ],
+    "smoker": false,
+    "current_medications": [
+      "albuterol",
+      "ibuprofen"
+    ],
+    "intake_note": "34-year-old female presenting with a persistent dry cough and mild shortness of breath, ongoing for five days, worse at night. Known asthmatic, uses albuterol inhaler as needed. Recently started taking ibuprofen for lower back pain. No fever reported. Non-smoker, no significant family history noted."
   },
   {
     "patient_id": "P003",
-    "name": "Michael Chen",
-    "age": 72,
+    "name": "Robert Chen",
+    "age": 71,
     "sex": "M",
-    "comorbidities": ["coronary artery disease", "hypertension"],
+    "vitals": {
+      "systolic_bp": 162,
+      "diastolic_bp": 98,
+      "heart_rate": 95,
+      "bmi": 27.8,
+      "cholesterol_total": 268
+    },
+    "cardiac_workup": {
+      "chest_pain_type": 1,
+      "fasting_blood_sugar_high": false,
+      "resting_ecg": 2,
+      "max_heart_rate": 118,
+      "exercise_induced_angina": false,
+      "st_depression": 1.2,
+      "st_slope": 1,
+      "num_major_vessels": 2,
+      "thalassemia": 3
+    },
+    "comorbidities": [
+      "atrial_fibrillation",
+      "hypertension"
+    ],
     "smoker": false,
-    "current_medications": ["aspirin", "metoprolol", "lisinopril"],
-    "intake_note": "72-year-old male with CAD and hypertension presents with chest pain."
+    "current_medications": [
+      "warfarin",
+      "metoprolol"
+    ],
+    "intake_note": "71-year-old male with known atrial fibrillation, on long-term warfarin therapy. Presents today requesting a refill and reporting mild joint pain, considering starting an over-the-counter NSAID for relief. Blood pressure poorly controlled despite metoprolol. No recent falls, no bleeding symptoms reported."
   },
   {
     "patient_id": "P004",
-    "name": "Emily Davis",
+    "name": "Aisha Rahman",
     "age": 45,
     "sex": "F",
+    "vitals": {
+      "systolic_bp": 112,
+      "diastolic_bp": 72,
+      "heart_rate": 68,
+      "bmi": 21.9,
+      "cholesterol_total": 172
+    },
+    "cardiac_workup": {
+      "chest_pain_type": 3,
+      "fasting_blood_sugar_high": false,
+      "resting_ecg": 0,
+      "max_heart_rate": 168,
+      "exercise_induced_angina": false,
+      "st_depression": 0.0,
+      "st_slope": 0,
+      "num_major_vessels": 0,
+      "thalassemia": 2
+    },
     "comorbidities": [],
     "smoker": false,
     "current_medications": [],
-    "intake_note": "45-year-old female presents for annual physical. No significant complaints."
+    "intake_note": "45-year-old female presenting for a routine annual wellness check. No current symptoms, no complaints. Exercises regularly (running, 3x/week). No family history of chronic disease reported. Not currently taking any medications. Requests general health screening and advice on preventive care."
   },
   {
     "patient_id": "P005",
     "name": "David Okoye",
     "age": 62,
     "sex": "M",
-    "comorbidities": ["hyperlipidemia"],
+    "vitals": {
+      "systolic_bp": 138,
+      "diastolic_bp": 88,
+      "heart_rate": 76,
+      "bmi": 28.4,
+      "cholesterol_total": 292
+    },
+    "cardiac_workup": {
+      "chest_pain_type": 1,
+      "fasting_blood_sugar_high": false,
+      "resting_ecg": 0,
+      "max_heart_rate": 152,
+      "exercise_induced_angina": false,
+      "st_depression": 0.6,
+      "st_slope": 0,
+      "num_major_vessels": 0,
+      "thalassemia": 2
+    },
+    "comorbidities": [
+      "hyperlipidemia"
+    ],
     "smoker": false,
-    "current_medications": ["atorvastatin"],
+    "current_medications": [
+      "atorvastatin"
+    ],
     "intake_note": "62-year-old male here for a follow-up on cholesterol management. Recent lipid panel shows persistently elevated LDL despite atorvastatin. Reports no chest pain or shortness of breath. Strong family history of coronary artery disease -- both a brother and father had bypass surgery in their 60s. Walks daily, no smoking history."
+  },
+  {
+    "patient_id": "P006",
+    "name": "Eleanor Whitfield",
+    "age": 70,
+    "sex": "F",
+    "vitals": {
+      "systolic_bp": 150,
+      "diastolic_bp": 92,
+      "heart_rate": 84,
+      "bmi": 24.1,
+      "cholesterol_total": 210
+    },
+    "cardiac_workup": {
+      "chest_pain_type": 2,
+      "fasting_blood_sugar_high": false,
+      "resting_ecg": 1,
+      "max_heart_rate": 126,
+      "exercise_induced_angina": true,
+      "st_depression": 1.0,
+      "st_slope": 1,
+      "num_major_vessels": 1,
+      "thalassemia": 2
+    },
+    "comorbidities": [
+      "copd",
+      "hypertension"
+    ],
+    "smoker": true,
+    "current_medications": [
+      "tiotropium",
+      "prednisone",
+      "lisinopril",
+      "omeprazole",
+      "alendronate"
+    ],
+    "intake_note": "70-year-old female with longstanding COPD, on inhaled tiotropium with intermittent oral prednisone during flares, presenting with worsening shortness of breath over the past week and increased use of rescue medication. Blood pressure remains elevated despite lisinopril. Also takes omeprazole for reflux and alendronate for osteoporosis prevention. Former smoker, quit 8 years ago after a 30 pack-year history."
+  },
+  {
+    "patient_id": "P007",
+    "name": "Youssef Naguib",
+    "age": 39,
+    "sex": "M",
+    "vitals": {
+      "systolic_bp": 124,
+      "diastolic_bp": 80,
+      "heart_rate": 74,
+      "bmi": 33.6,
+      "cholesterol_total": 205
+    },
+    "cardiac_workup": {
+      "chest_pain_type": 3,
+      "fasting_blood_sugar_high": false,
+      "resting_ecg": 0,
+      "max_heart_rate": 164,
+      "exercise_induced_angina": false,
+      "st_depression": 0.0,
+      "st_slope": 0,
+      "num_major_vessels": 0,
+      "thalassemia": 2
+    },
+    "comorbidities": [
+      "obesity",
+      "gerd"
+    ],
+    "smoker": false,
+    "current_medications": [
+      "omeprazole"
+    ],
+    "intake_note": "39-year-old male presenting with frequent heartburn and acid regurgitation, especially after large meals and when lying down, ongoing for several months. Currently self-managing with over-the-counter omeprazole with partial relief. BMI in the obese range; reports sedentary desk job and limited exercise. No chest pain, no cardiac symptoms. Interested in weight management options."
+  },
+  {
+    "patient_id": "P008",
+    "name": "Sara Lindqvist",
+    "age": 55,
+    "sex": "F",
+    "vitals": {
+      "systolic_bp": 128,
+      "diastolic_bp": 82,
+      "heart_rate": 78,
+      "bmi": 26.0,
+      "cholesterol_total": 234
+    },
+    "cardiac_workup": {
+      "chest_pain_type": 2,
+      "fasting_blood_sugar_high": false,
+      "resting_ecg": 0,
+      "max_heart_rate": 148,
+      "exercise_induced_angina": false,
+      "st_depression": 0.4,
+      "st_slope": 0,
+      "num_major_vessels": 0,
+      "thalassemia": 2
+    },
+    "comorbidities": [
+      "depression",
+      "hyperlipidemia"
+    ],
+    "smoker": false,
+    "current_medications": [
+      "sertraline",
+      "atorvastatin"
+    ],
+    "intake_note": "55-year-old female, established patient with depression managed on sertraline for the past two years, reports mood has been stable. Presents today for a routine follow-up and cholesterol recheck. Denies chest pain, denies suicidal ideation. Sleep and appetite reported as normal. Continues atorvastatin for hyperlipidemia with good tolerance."
+  },
+  {
+    "patient_id": "P009",
+    "name": "Ahmed El-Sayed",
+    "age": 81,
+    "sex": "M",
+    "vitals": {
+      "systolic_bp": 158,
+      "diastolic_bp": 90,
+      "heart_rate": 90,
+      "bmi": 25.3,
+      "cholesterol_total": 198
+    },
+    "cardiac_workup": {
+      "chest_pain_type": 1,
+      "fasting_blood_sugar_high": false,
+      "resting_ecg": 2,
+      "max_heart_rate": 110,
+      "exercise_induced_angina": true,
+      "st_depression": 1.6,
+      "st_slope": 1,
+      "num_major_vessels": 2,
+      "thalassemia": 3
+    },
+    "comorbidities": [
+      "chronic_kidney_disease",
+      "hypertension",
+      "atrial_fibrillation"
+    ],
+    "smoker": false,
+    "current_medications": [
+      "warfarin",
+      "furosemide",
+      "lisinopril",
+      "atorvastatin",
+      "allopurinol"
+    ],
+    "intake_note": "81-year-old male with chronic kidney disease (stage 3), atrial fibrillation on warfarin, and hypertension, here for medication reconciliation. On five chronic medications including furosemide and lisinopril for blood pressure/fluid management, atorvastatin, and allopurinol for gout prevention. Family reports occasional confusion and one fall in the past month. No chest pain today."
+  },
+  {
+    "patient_id": "P010",
+    "name": "Priya Nair",
+    "age": 29,
+    "sex": "F",
+    "vitals": {
+      "systolic_bp": 108,
+      "diastolic_bp": 70,
+      "heart_rate": 70,
+      "bmi": 22.0,
+      "cholesterol_total": 168
+    },
+    "cardiac_workup": {
+      "chest_pain_type": 3,
+      "fasting_blood_sugar_high": false,
+      "resting_ecg": 0,
+      "max_heart_rate": 178,
+      "exercise_induced_angina": false,
+      "st_depression": 0.0,
+      "st_slope": 0,
+      "num_major_vessels": 0,
+      "thalassemia": 2
+    },
+    "comorbidities": [
+      "gerd"
+    ],
+    "smoker": false,
+    "current_medications": [
+      "omeprazole"
+    ],
+    "intake_note": "29-year-old female presenting with intermittent burning chest discomfort after meals, worse with spicy food and coffee, for the past three weeks. No exertional component, no radiation to arm or jaw, resolves with antacids. Already trialing over-the-counter omeprazole with some improvement. No cardiac risk factors, non-smoker, physically active."
+  },
+  {
+    "patient_id": "P011",
+    "name": "Marcus Webb",
+    "age": 50,
+    "sex": "M",
+    "vitals": {
+      "systolic_bp": 144,
+      "diastolic_bp": 92,
+      "heart_rate": 82,
+      "bmi": 30.5,
+      "cholesterol_total": 258
+    },
+    "cardiac_workup": {
+      "chest_pain_type": 0,
+      "fasting_blood_sugar_high": true,
+      "resting_ecg": 1,
+      "max_heart_rate": 140,
+      "exercise_induced_angina": true,
+      "st_depression": 1.4,
+      "st_slope": 1,
+      "num_major_vessels": 1,
+      "thalassemia": 3
+    },
+    "comorbidities": [
+      "type_2_diabetes",
+      "hyperlipidemia",
+      "hypertension"
+    ],
+    "smoker": false,
+    "current_medications": [
+      "metformin",
+      "atorvastatin",
+      "lisinopril"
+    ],
+    "intake_note": "50-year-old male with metabolic syndrome -- type 2 diabetes, hyperlipidemia, and hypertension -- presenting with exertional chest tightness that resolves with rest, occurring twice in the past month during yard work. Blood glucose control borderline on metformin alone. Blood pressure remains above goal despite lisinopril. Requesting evaluation before an upcoming long flight."
+  },
+  {
+    "patient_id": "P012",
+    "name": "Grace Muthoni",
+    "age": 66,
+    "sex": "F",
+    "vitals": {
+      "systolic_bp": 152,
+      "diastolic_bp": 94,
+      "heart_rate": 98,
+      "bmi": 26.8,
+      "cholesterol_total": 224
+    },
+    "cardiac_workup": {
+      "chest_pain_type": 2,
+      "fasting_blood_sugar_high": false,
+      "resting_ecg": 2,
+      "max_heart_rate": 122,
+      "exercise_induced_angina": true,
+      "st_depression": 1.3,
+      "st_slope": 1,
+      "num_major_vessels": 1,
+      "thalassemia": 3
+    },
+    "comorbidities": [
+      "atrial_fibrillation",
+      "chronic_kidney_disease"
+    ],
+    "smoker": false,
+    "current_medications": [
+      "warfarin",
+      "ibuprofen"
+    ],
+    "intake_note": "66-year-old female with atrial fibrillation on long-term warfarin, presenting with knee pain and swelling and self-reporting she has started taking over-the-counter ibuprofen daily for the past week. Also has chronic kidney disease (stage 3). Reports some bruising on her forearms that she attributes to gardening. No hematuria or melena reported."
   }
 ]

@@ -1,0 +1,27 @@
+[SAMPLE / EDUCATIONAL GUIDELINE SNIPPET - NOT FOR CLINICAL USE]
+
+Topic: Hyperlipidemia (High Cholesterol) - General Overview
+
+Lipid management is commonly framed around estimating a patient's overall
+cardiovascular risk rather than treating a single number in isolation. Total
+cholesterol, LDL, HDL, and triglycerides are typically interpreted together,
+alongside risk factors such as age, smoking status, blood pressure, diabetes,
+and family history of early coronary artery disease.
+
+Lifestyle measures are generally recommended as a first step regardless of
+drug therapy: reduced saturated fat intake, increased fiber and unsaturated
+fats, regular aerobic exercise, weight management, and smoking cessation.
+
+Statins are commonly discussed as first-line pharmacologic therapy for most
+patients who qualify for treatment, with intensity (low, moderate, high)
+typically chosen based on estimated 10-year cardiovascular risk rather than
+LDL level alone. Patients with a strong family history of early cardiac
+events, or with persistently elevated LDL despite statin therapy, are often
+flagged for closer monitoring or consideration of additional agents.
+
+Routine follow-up lipid panels are commonly used to assess response to
+therapy and medication adherence, typically a few months after starting or
+adjusting treatment.
+
+This file is a simplified, illustrative summary written for a software demo
+and should never be used to make real treatment decisions.

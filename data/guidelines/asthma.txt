@@ -1,0 +1,19 @@
+[SAMPLE / EDUCATIONAL GUIDELINE SNIPPET - NOT FOR CLINICAL USE]
+
+Topic: Asthma - General Overview
+
+Asthma management typically distinguishes between reliever therapy (e.g.,
+short-acting bronchodilators used as needed for symptoms) and controller therapy
+(e.g., inhaled corticosteroids used regularly to reduce underlying inflammation).
+
+New or worsening respiratory symptoms such as persistent cough or nighttime
+shortness of breath are generally treated as a signal to reassess asthma control
+and consider whether controller therapy should be started or adjusted.
+
+Certain oral medications are noted in general references as potentially triggering
+bronchospasm or worsening symptoms in some individuals with asthma; patients are
+often advised to flag new over-the-counter medication use during flare-ups so it
+can be reviewed alongside their respiratory symptoms.
+
+This file is a simplified, illustrative summary written for a software demo and
+should never be used to make real treatment decisions.

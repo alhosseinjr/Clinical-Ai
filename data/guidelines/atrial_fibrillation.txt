@@ -1,0 +1,19 @@
+[SAMPLE / EDUCATIONAL GUIDELINE SNIPPET - NOT FOR CLINICAL USE]
+
+Topic: Atrial Fibrillation & Anticoagulation - General Overview
+
+Patients with atrial fibrillation are commonly assessed for stroke risk using
+structured scoring tools, with anticoagulation therapy (e.g., warfarin or direct
+oral anticoagulants) considered for those at elevated risk.
+
+Patients on anticoagulant therapy are generally counseled about bleeding risk and
+are typically advised to discuss any new medication, including over-the-counter
+products, with a clinician or pharmacist before starting them, since some common
+over-the-counter pain relievers are associated with increased bleeding risk when
+combined with anticoagulants.
+
+Routine follow-up for anticoagulated patients typically includes monitoring for
+signs of bleeding and periodic reassessment of overall treatment appropriateness.
+
+This file is a simplified, illustrative summary written for a software demo and
+should never be used to make real treatment decisions.

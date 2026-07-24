@@ -1,0 +1,26 @@
+[SAMPLE / EDUCATIONAL GUIDELINE SNIPPET - NOT FOR CLINICAL USE]
+
+Topic: Chronic Kidney Disease (CKD) - General Overview
+
+CKD is commonly staged (1 through 5) based on estimated glomerular filtration
+rate and markers of kidney damage such as protein in the urine. Management
+generally focuses on slowing progression and managing common complications
+rather than a single fixed protocol, since causes and severity vary widely.
+
+Blood pressure control is typically emphasized as a central pillar of care,
+with ACE inhibitors or ARBs commonly preferred in patients with associated
+protein in the urine, though these agents are usually monitored closely for
+effects on potassium and kidney function after starting or adjusting dose.
+
+Medication review is commonly highlighted as especially important in CKD,
+since many drugs (including several NSAIDs and some antibiotics) are cleared
+by the kidneys or can independently reduce kidney function, and doses may
+need adjustment based on kidney function stage.
+
+Patients with CKD alongside atrial fibrillation are commonly discussed as a
+more complex anticoagulation decision, since both the disease and some
+anticoagulants affect bleeding and clotting risk; such cases are frequently
+flagged for more individualized specialist input.
+
+This file is a simplified, illustrative summary written for a software demo
+and should never be used to make real treatment decisions.

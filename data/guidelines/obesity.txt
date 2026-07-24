@@ -1,0 +1,26 @@
+[SAMPLE / EDUCATIONAL GUIDELINE SNIPPET - NOT FOR CLINICAL USE]
+
+Topic: Obesity - General Overview
+
+Obesity (commonly defined using BMI thresholds, recognizing BMI is an
+imperfect proxy for body composition) is generally approached as a chronic
+condition warranting ongoing management, rather than a short-term fix.
+
+Lifestyle intervention -- structured dietary changes, regular physical
+activity, and behavioral support -- is commonly described as the foundation
+of care for most patients, often with a modest, sustained weight loss target
+(such as 5-10% of body weight) rather than an aggressive short-term goal.
+
+Pharmacologic options are commonly considered as an adjunct for patients who
+don't reach goals with lifestyle measures alone, particularly when obesity
+coexists with conditions like type 2 diabetes, hypertension, or obstructive
+sleep apnea. Bariatric surgery is commonly discussed as an option for more
+severe obesity, especially with significant associated comorbidities.
+
+Since obesity commonly clusters with conditions like type 2 diabetes,
+hypertension, and hyperlipidemia (sometimes grouped as metabolic syndrome),
+coordinated management of the whole cluster is generally emphasized over
+treating each condition in isolation.
+
+This file is a simplified, illustrative summary written for a software demo
+and should never be used to make real treatment decisions.
