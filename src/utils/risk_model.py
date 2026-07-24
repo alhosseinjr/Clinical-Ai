@@ -20,7 +20,6 @@ import joblib
 import numpy as np
 import pandas as pd
 from src.state import PipelineState
-from src.utils.risk_model import RiskModel, FEATURE_NAMES
 from src.utils.clinical_feature_mapper import map_clinical_features
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import train_test_split
