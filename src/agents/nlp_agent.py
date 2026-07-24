@@ -7,58 +7,11 @@ Falls back to a deterministic mock response when running offline.
 """
 
 import json
-import re
 from src.state import PipelineState
 from src.utils.llm import call_llm
+from src.utils.llm_parser import parse_llm_json
 from src.orchestrator import should_call_nlp_llm
 from src.utils.clinical_ner import extract_clinical_terms
-
-
-def _parse_json_response(raw_output: str) -> dict:
-    """
-    Robust parser for small LLM outputs.
-    """
-
-    raw_output = raw_output.strip()
-
-    # Normalize smart quotes
-    raw_output = (
-        raw_output
-        .replace("“", '"')
-        .replace("”", '"')
-        .replace("’", "'")
-    )
-
-    # Remove markdown fences
-    raw_output = raw_output.replace("```json", "")
-    raw_output = raw_output.replace("```", "")
-    raw_output = raw_output.strip()
-
-    # Extract JSON
-    match = re.search(r"\{.*\}", raw_output, re.DOTALL)
-
-    if not match:
-        raise json.JSONDecodeError(
-            "No JSON object found",
-            raw_output,
-            0
-        )
-
-    data = json.loads(match.group())
-
-    # Normalize keys
-    key_mapping = {
-        "mentioned Conditions": "mentioned_conditions",
-        "mentioned Medications": "mentioned_medications",
-        "noteworthy Flags": "notable_flags",
-    }
-
-    for old, new in key_mapping.items():
-        if old in data:
-            data[new] = data.pop(old)
-
-    return data
-
 
 SYSTEM_PROMPT = """You are a clinical NLP extraction agent.
 
@@ -125,8 +78,7 @@ def _mock_response(note: str) -> str:
 
 
 def _empty_note_response() -> dict:
-    """Deterministic result for a blank/whitespace-only intake note --
-    there's nothing to extract, so no need to spend a generation pass."""
+    """Deterministic result for a blank/whitespace-only intake note."""
     return {
         "symptoms": [],
         "mentioned_conditions": [],
@@ -138,25 +90,63 @@ def _empty_note_response() -> dict:
 def run(state: PipelineState) -> dict:
     profile = state.get("patient_profile", {})
     note = profile.get("intake_note", "")
-
-    print("\n=== NLP INPUT ===")
-    print(note)
-    print("=================\n")
+    mock = state.get("mock_mode", False)
+    
+    # Deterministic medical term extraction
+    detected_entities = extract_clinical_terms(note)
 
     if not should_call_nlp_llm(note):
         entities = _empty_note_response()
     else:
-        # Deterministic clinical extraction
-        entities = extract_clinical_terms(note)
+        raw_output = call_llm(
+            system_prompt=SYSTEM_PROMPT,
+            user_prompt=f"Intake note:\n\n{note}",
+            mock=mock,
+            mock_response=_mock_response(note),
+            max_tokens=220,
+        )
 
+        # Use the shared, robust parser
+        entities = parse_llm_json(
+            raw_output,
+            default={
+                "symptoms": [],
+                "mentioned_conditions": [],
+                "mentioned_medications": [],
+                "notable_flags": ["parse_error: could not parse model output as JSON"],
+                "raw_output": raw_output,
+            }
+        )
+
+        # Normalize keys (in case the LLM hallucinates slight variations)
+        key_mapping = {
+            "mentioned Conditions": "mentioned_conditions",
+            "mentioned Medications": "mentioned_medications",
+            "noteworthy Flags": "notable_flags",
+        }
+        for old, new in key_mapping.items():
+            if old in entities:
+                entities[new] = entities.pop(old)
+
+        # Ensure all expected keys exist and are lists
+        for key in ["symptoms", "mentioned_conditions", "mentioned_medications", "notable_flags"]:
+            if key not in entities:
+                entities[key] = []
+            elif isinstance(entities[key], str):
+                entities[key] = [entities[key]]
+            
+    # Merge rule-based extraction with LLM extraction
+    for key in detected_entities:
+        entities[key] = list(
+            set(
+                entities.get(key, [])
+                + detected_entities[key]
+            )
+        )
+        
     trace = [
-    f"[Medical NLP Agent] Extracted "
-    f"{len(entities['symptoms'])} symptoms, "
-    f"{len(entities['mentioned_conditions'])} conditions, "
-    f"{len(entities['mentioned_medications'])} medications."
-]
+        f"[Medical NLP Agent] Extracted {len(entities.get('symptoms', []))} symptom(s) "
+        f"and {len(entities.get('notable_flags', []))} flag(s) from intake note."
+    ]
 
-    return {
-        "extracted_entities": entities,
-        "trace": trace
-    }
+    return {"extracted_entities": entities, "trace": trace}
