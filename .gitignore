@@ -32,3 +32,4 @@ models/clinical-lora-adapter/checkpoints/
 
 # Large model artifacts
 models/clinical-lora-adapter/
+models/Qwen2.5-3B-Instruct/

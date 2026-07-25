@@ -10,6 +10,20 @@ from src.utils.llm_parser import parse_llm_json
 
 class TestParseLLMJson:
     """Test suite for parse_llm_json function."""
+    
+    def test_key_normalization(self):
+        """Test that common key errors are normalized correctly."""
+        # Test 1: Fix "notable Flags" -> "notable_flags"
+        result = parse_llm_json('{"notable Flags": ["smoker"]}')
+        assert result["notable_flags"] == ["smoker"]
+        
+        # Test 2: Fix "c citations" -> "citations"
+        result = parse_llm_json('{"c citations": ["copd.txt"]}')
+        assert result["citations"] == ["copd.txt"]
+        
+        # Test 3: Fix "recommendation" -> "recommendations"
+        result = parse_llm_json('{"recommendation": ["Follow up"]}')
+        assert result["recommendations"] == ["Follow up"]
 
     def test_valid_json(self):
         """Pure JSON should parse directly."""

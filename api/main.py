@@ -65,7 +65,12 @@ class RunRequest(BaseModel):
 def _local_model_ready() -> bool:
     merged_path = os.environ.get("MERGED_MODEL_PATH", "models/clinical-llm-merged")
     adapter_path = os.environ.get("LORA_ADAPTER_PATH", "models/clinical-lora-adapter")
-    return os.path.isdir(merged_path) or os.path.isdir(adapter_path)
+    adapter_05b_path = "models/clinical-lora-adapter-0.5b"  # Add this line
+    
+    # Check for either the current adapter or the old 0.5B one
+    return (os.path.isdir(merged_path) or 
+            os.path.isdir(adapter_path) or 
+            os.path.isdir(adapter_05b_path))  # Add this line
 
 
 def _resolve_patient_raw(req: "RunRequest") -> Dict[str, Any]:

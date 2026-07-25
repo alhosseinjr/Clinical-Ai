@@ -67,60 +67,59 @@ def _load_model():
 
     merged_path = os.environ.get("MERGED_MODEL_PATH", "models/clinical-llm-merged")
     adapter_path = os.environ.get("LORA_ADAPTER_PATH", "models/clinical-lora-adapter")
-    base_model_id = os.environ.get("BASE_MODEL_ID", "Qwen/Qwen2.5-0.5B-Instruct")
+    
+    # Change this line:
+    base_model_id = os.environ.get("BASE_MODEL_ID", "models/Qwen2.5-3B-Instruct")
 
     try:
-        print("Importing torch...")
         import torch
-        print("Torch imported.")
-
-        print("Importing transformers...")
         from transformers import AutoModelForCausalLM, AutoTokenizer
-        print("Transformers imported.")
+        from peft import PeftModel
 
         _device = _pick_device()
         _dtype = _pick_dtype(_device)
 
-        print(f"Loading model on {_device}...")
+        print(f"Loading model on {_device} with dtype {_dtype}...")
 
-        if os.path.isdir(merged_path):
-            ...
+        # 1. Try Merged Model
+        if os.path.isdir(merged_path) and os.path.exists(os.path.join(merged_path, "config.json")):
+            print(f"Loading merged model from {merged_path}...")
+            _tokenizer = AutoTokenizer.from_pretrained(merged_path)
+            _model = AutoModelForCausalLM.from_pretrained(merged_path, torch_dtype=_dtype, device_map="auto")
+            print("Merged model loaded.")
 
+        # 2. Try Base + Adapter
         elif os.path.isdir(adapter_path):
-
-            print("Importing PEFT...")
-            from peft import PeftModel
-            print("PEFT imported.")
-
-            print("Loading tokenizer...")
-            _tokenizer = AutoTokenizer.from_pretrained(adapter_path)
-
-            print("Tokenizer loaded.")
-
-            print("Loading base model...")
-            base = AutoModelForCausalLM.from_pretrained(
-            base_model_id,
-            dtype=_dtype,
-            )
-
-            print("Base model loaded.")
-
-            print("Loading LoRA adapter...")
+            print(f"Loading LoRA adapter from {adapter_path}...")
+            print(f"Loading base model: {base_model_id}...")
+            _tokenizer = AutoTokenizer.from_pretrained(base_model_id)
+            base = AutoModelForCausalLM.from_pretrained(base_model_id, torch_dtype=_dtype, device_map="auto")
             _model = PeftModel.from_pretrained(base, adapter_path)
-
-            print("Model loaded.")
+            print("Base model + LoRA adapter loaded.")
+            
+        # 3. FALLBACK: Just load the Base Model (This is what we need now!)
         else:
-            _model_unavailable_reason = (
-                f"No local model found (checked '{merged_path}' and '{adapter_path}'). "
-                f"Run finetune/scripts/train_lora.py first, or pass mock=True."
-            )
-            return
+            print(f"No adapter found. Loading raw base model: {base_model_id}...")
+            print("(This will download ~2GB on the first run. Please wait...)")
+            _tokenizer = AutoTokenizer.from_pretrained(base_model_id)
+            _model = AutoModelForCausalLM.from_pretrained(base_model_id, torch_dtype=_dtype, device_map="auto")
+            print("Base model loaded successfully!")
 
-        _model.to(_device)
         _model.eval()
+        print("✅ Model ready for inference!")
 
-    except Exception as e:  # missing deps, OOM, corrupt checkpoint, etc.
-        _model_unavailable_reason = f"Local model failed to load ({e})."
+    except Exception as e:
+        _model_unavailable_reason = f"Local model failed to load: {str(e)}"
+        print(f"❌ Error loading model: {e}")
+
+        _model.eval()
+        print("✅ Model ready for inference!")
+
+    except Exception as e:
+        _model_unavailable_reason = f"Local model failed to load: {str(e)}"
+        print(f" Error loading model: {e}")
+        import traceback
+        traceback.print_exc()
 
 
 def _cache_key(system_prompt: str, user_prompt: str, max_tokens: int) -> str:
@@ -180,24 +179,17 @@ def call_llm(
     inputs = _tokenizer(prompt_text, return_tensors="pt").to(_device)
 
     with torch.no_grad():
-     output_ids = _model.generate(
-        **inputs,
-        max_new_tokens=max_tokens,
-
-        # Deterministic decoding
-        do_sample=False,
-        num_beams=1,
-
-        # Better stability
-        repetition_penalty=1.1,
-        no_repeat_ngram_size=3,
-
-        # Faster inference
-        use_cache=True,
-
-        eos_token_id=_tokenizer.eos_token_id,
-        pad_token_id=_tokenizer.eos_token_id,
-         )
+        output_ids = _model.generate(
+            **inputs,
+            max_new_tokens=max_tokens,
+            do_sample=False,
+            num_beams=1,
+            repetition_penalty=1.1,
+            no_repeat_ngram_size=3,
+            use_cache=True,
+            eos_token_id=_tokenizer.eos_token_id,
+            pad_token_id=_tokenizer.eos_token_id,
+        )
 
     generated = output_ids[0][inputs["input_ids"].shape[1]:]
     text = _tokenizer.decode(generated, skip_special_tokens=True)
@@ -207,6 +199,14 @@ def call_llm(
     text = text.replace("```json", "")
     text = text.replace("```", "")
     text = text.strip()
+
+    # --- DEBUG PRINT STATEMENT ---
+    print("\n" + "="*60)
+    print(f"RAW MODEL OUTPUT (max_tokens={max_tokens}):")
+    print("-"*60)
+    print(text)
+    print("="*60 + "\n")
+    # -----------------------------
 
     _response_cache[cache_key] = text
     return text

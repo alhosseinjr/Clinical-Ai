@@ -1,31 +1,9 @@
 """
 Shared LLM output parser.
-
-Consolidates the JSON extraction logic that was previously duplicated
-across the NLP, Clinical Reasoning, Guideline Verification, and Drug
-Safety agents. Every agent now calls parse_llm_json() instead of
-re-implementing the same try/regex/fallback pattern.
-
-IMPORTANT: This parser performs lossy recovery operations:
-- Smart-quote normalization mutates string contents to recover malformed JSON
-- Markdown fence removal may modify legitimate JSON values containing triple backticks
-- Trailing comma repair modifies the original text
-
-These operations are intentional design decisions to handle common LLM output failures.
-The parser prioritizes successful extraction over preserving exact original content.
-
-Supported JSON structures:
-- Nested objects and arrays
-- Strings with escaped quotes and backslashes
-- Unicode characters (including emoji)
-- Escaped Unicode sequences (\\uXXXX)
-- Up to 256 levels of nesting (configurable)
-
-Note: Arrays are extracted only when allow_arrays=True. By default, only
-JSON objects are accepted. This matches the expected output shape of most
-agents in the pipeline.
+[... keep your existing docstring ...]
 """
 
+import ast
 import json
 import logging
 import re
@@ -62,7 +40,7 @@ _TRAILING_COMMA_RE = re.compile(r",\s*([\]}])")
 
 logger = logging.getLogger(__name__)
 
-# Translation table for smart quote normalization (faster than multiple .replace() calls)
+# Translation table for smart quote normalization
 _QUOTE_TRANSLATION_TABLE = str.maketrans(_SMART_QUOTES)
 
 
@@ -74,6 +52,27 @@ def _normalize_smart_quotes(text: str) -> str:
     emitted by some LLMs. This is a lossy operation.
     """
     return text.translate(_QUOTE_TRANSLATION_TABLE)
+
+
+def _normalize_json_keys(text: str) -> str:
+    """Fix common key naming errors from small models."""
+    # Fix parentheses in keys
+    text = re.sub(r'\("([^"]+)"\)', r'"\1"', text)
+    
+    # Fix specific key variations
+    replacements = {
+        '"notable Flags"': '"notable_flags"',
+        '"notable flags"': '"notable_flags"',
+        '"c citations"': '"citations"',
+        '"recommendation"': '"recommendations"',
+        '"mentioned_condition"': '"mentioned_conditions"',
+        '"mentioned_medication"': '"mentioned_medications"',
+    }
+    
+    for old, new in replacements.items():
+        text = text.replace(old, new)
+    
+    return text
 
 
 def _strip_markdown_fences(text: str) -> str:
@@ -105,21 +104,7 @@ def _failure(default: JSONDict, raw_output: str) -> JSONDict:
 def _extract_json_block(text: str, allow_arrays: bool = False) -> str | None:
     """
     Extract the first complete JSON object (or array) from text using stack-based
-    delimiter tracking. Handles nested braces and brackets correctly by maintaining
-    a stack of open delimiters, respecting strings, and validating matching pairs.
-    
-    Supports:
-    - Nested objects and arrays (up to _MAX_NESTING levels)
-    - Strings with escaped quotes and backslashes
-    - Unicode characters
-    - Validates that opening/closing delimiters match correctly
-    
-    Args:
-        text: Input text potentially containing JSON
-        allow_arrays: If True, also extract JSON arrays [...]; otherwise only {...}
-    
-    Returns:
-        Extracted JSON string, or None if not found or malformed
+    delimiter tracking.
     """
     # Find start of object or array
     obj_start = text.find("{")
@@ -187,14 +172,14 @@ def _extract_json_block(text: str, allow_arrays: bool = False) -> str | None:
 def _try_extract_and_parse(text: str, allow_arrays: bool = False) -> ParsedJSON | None:
     """
     Attempt to extract JSON block and parse it, with trailing comma repair.
-    
-    This helper consolidates the extraction + parse + repair logic to avoid duplication.
-    Returns None if extraction or parsing fails.
     """
     # Attempt extraction
     extracted = _extract_json_block(text, allow_arrays)
     if not extracted:
         return None
+    
+    # Normalize keys before parsing
+    extracted = _normalize_json_keys(extracted)
     
     # Attempt direct parse
     if data := _try_parse(extracted, allow_arrays):
@@ -217,29 +202,7 @@ def parse_llm_json(
 ) -> ParsedJSON:
     """
     Robust JSON parser for small LLM outputs.
-
-    Progressive repair attempts:
-    1. Direct parse
-    2. Extract JSON block and parse
-    3. Normalize smart quotes and strip markdown fences
-    4. Extract JSON block again and parse
-
-    IMPORTANT: This parser performs lossy recovery:
-    - Smart-quote normalization mutates string contents
-    - Markdown fence removal may modify legitimate JSON values
-    - Trailing comma repair modifies the original text
-    
-    Note: Arrays are extracted only when allow_arrays=True.
-    
-    Args:
-        raw_output: The raw string returned by the LLM.
-        default: Fallback dict returned when all parsing attempts fail.
-                 If None, a generic error dict is returned instead.
-        allow_arrays: If True, also accept JSON arrays as valid output.
-                      Default is False (only accept objects).
-
-    Returns:
-        Parsed dict (or list if allow_arrays=True), or `default` / error dict on failure.
+    [Keep your existing docstring]
     """
     if default is None:
         default = {"parse_error": "could not parse model output as JSON"}
@@ -262,7 +225,6 @@ def parse_llm_json(
         return data
     
     # Attempt 3: Normalize smart quotes
-    # This intentionally mutates string content to recover malformed JSON
     text = _normalize_smart_quotes(text)
     if data := _try_parse(text, allow_arrays):
         logger.debug("Recovered JSON after smart quote normalization")
@@ -277,6 +239,16 @@ def parse_llm_json(
     # Attempt 5: Extract JSON block again after cleanup
     if data := _try_extract_and_parse(text, allow_arrays):
         return data
+    
+        # Attempt 6: Handle Python-style dictionaries (single quotes)
+    try:
+        py_text = text.replace('false', 'False').replace('true', 'True').replace('null', 'None')
+        data = ast.literal_eval(py_text)
+        if isinstance(data, dict):
+            logger.debug("Recovered JSON via ast.literal_eval")
+            return data
+    except (ValueError, SyntaxError):
+        pass
     
     # All attempts failed
     logger.warning(
