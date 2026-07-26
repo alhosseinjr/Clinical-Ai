@@ -69,7 +69,9 @@ def run(state: PipelineState) -> dict:
 - Symptoms: {_fmt_inline(entities.get('symptoms'))}
 - Mentioned conditions: {_fmt_inline(entities.get('mentioned_conditions'))}
 - Mentioned medications: {_fmt_inline(entities.get('mentioned_medications'))}
-- Notable flags: {_fmt_inline(entities.get('notable_flags'))}
+f"- **Risk Factors:** {', '.join(risk_factors) if risk_factors else 'None'}\n"
+f"- **Family History:** {', '.join(family_history) if family_history else 'None'}\n"
+f"- **Negations:** {', '.join(negations) if negations else 'None'}\n"
 
 ## 3. Risk Prediction (ML)
 - **Risk category:** {risk.get('risk_category', 'n/a').upper()}
