@@ -3,7 +3,7 @@
 
 Builds a query from the patient's comorbidities + extracted conditions and
 retrieves the most relevant guideline snippets from the local corpus
-(data/guidelines/) using TF-IDF similarity.
+(data/guidelines/) using semantic embedding similarity (sentence-transformers / all-MiniLM-L6-v2).
 """
 
 import os

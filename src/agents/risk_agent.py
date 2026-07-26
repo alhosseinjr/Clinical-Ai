@@ -2,7 +2,7 @@
 3. Risk Prediction Agent (ML)
 
 Runs the patient's structured vitals + cardiac workup data through a
-logistic regression model trained on the real UCI Heart Disease dataset
+Random Forest model trained on the real UCI Heart Disease dataset
 (src/utils/risk_model.py) to produce a risk score, category, and top
 contributing factors.
 
@@ -74,14 +74,21 @@ def run(state: PipelineState) -> dict:
     # NOTE: 'risk' runs in parallel with 'nlp', so extracted_entities 
     # might not exist yet. We safely skip this if it's missing or incomplete.
     nlp_features = {}
-    entities = state.get("extracted_entities")
+    entities = state.get("extracted_entities", {})
+    profile = state.get("patient_profile", {})
     
     if entities:
         try:
-            nlp_features = map_clinical_features(entities)
+            # Pass BOTH arguments
+            nlp_features = map_clinical_features(entities, profile)
         except Exception:
-            # If the mapper fails because entities are incomplete, just use base features
+            # If it fails, we safely fall back to base vitals
             pass
+
+    for key, value in nlp_features.items():
+        if key in features:
+            if features[key] == 0:
+                features[key] = value
 
     for key, value in nlp_features.items():
         if key in features:

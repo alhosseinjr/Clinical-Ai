@@ -101,9 +101,18 @@ class RiskModel:
         self.clf = self.pipeline.named_steps["clf"]
         self.scaler = self.pipeline.named_steps["scaler"]
 
-    def predict(self, patient: dict) -> dict:
-        if "extracted_entities" in patient:
-            patient = map_clinical_features(patient)
+            def predict(self, patient: dict) -> dict:
+            # Safely attempt to enhance features with NLP entities
+        entities = patient.get("extracted_entities", {})
+        if entities:
+            try:
+                # Pass both entities and the patient profile (the patient dict itself)
+                mapped_features = map_clinical_features(entities, patient)
+                # Update the patient dict with the mapped features
+                patient.update(mapped_features)
+            except Exception:
+                # If mapping fails, we safely fall back to base vitals
+                pass
 
         features = np.array(
             [[patient.get(name, 0) for name in FEATURE_NAMES]],

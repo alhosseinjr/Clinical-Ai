@@ -145,11 +145,12 @@ function renderReport(data) {
   fillEl.style.width = `${Math.round((risk.risk_score || 0) * 100)}%`;
 
   // --- PROFILE & ENTITIES ---
-  renderDefList($("profileList"), [
-    ["Smoker", profile.smoker ? "Yes" : "No"],
-    ["Current medications", (profile.current_medications || []).join(", ") || "None listed"],
-    ["Systolic / diastolic BP", `${profile.vitals?.systolic_bp ?? "—"} / ${profile.vitals?.diastolic_bp ?? "—"}`],
-    ["BMI", profile.vitals?.bmi ?? "—"],
+  renderDefList($("entitiesList"), [
+    ["Symptoms", (entities.symptoms || []).join(", ") || "None extracted"],
+    ["Mentioned conditions", (entities.mentioned_conditions || []).join(", ") || "None"],
+    ["Mentioned medications", (entities.mentioned_medications || []).join(", ") || "None"],
+    ["Risk Factors", (entities.risk_factors || []).join(", ") || "None"],
+    ["Family History", (entities.family_history || []).join(", ") || "None"],
   ]);
 
   // NEW: Confidence Badge Logic
