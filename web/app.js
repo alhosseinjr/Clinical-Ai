@@ -144,24 +144,24 @@ function renderReport(data) {
   fillEl.className = `riskbar__fill ${rClass}`;
   fillEl.style.width = `${Math.round((risk.risk_score || 0) * 100)}%`;
 
-  // --- PROFILE & ENTITIES ---
-  renderDefList($("entitiesList"), [
-    ["Symptoms", (entities.symptoms || []).join(", ") || "None extracted"],
-    ["Mentioned conditions", (entities.mentioned_conditions || []).join(", ") || "None"],
-    ["Mentioned medications", (entities.mentioned_medications || []).join(", ") || "None"],
-    ["Risk Factors", (entities.risk_factors || []).join(", ") || "None"],
-    ["Family History", (entities.family_history || []).join(", ") || "None"],
+  // --- PATIENT PROFILE (FIXED: Was missing entirely) ---
+  renderDefList($("profileList"), [
+    ["Smoker", profile.smoker ? "Yes" : "No"],
+    ["Current medications", (profile.current_medications || []).join(", ") || "None listed"],
+    ["Systolic / diastolic BP", `${profile.vitals?.systolic_bp ?? "—"} / ${profile.vitals?.diastolic_bp ?? "—"}`],
+    ["BMI", profile.vitals?.bmi ?? "—"],
   ]);
 
-  // NEW: Confidence Badge Logic
-  const confidence = entities.extraction_confidence || "medium"; // Default to medium if missing
+  // --- ENTITIES (FIXED: Consolidated into one clean block) ---
+  const confidence = entities.extraction_confidence || "medium";
   const confColor = confidence === "high" ? "#10b981" : confidence === "low" ? "#ef4444" : "#f59e0b";
 
   renderDefList($("entitiesList"), [
     ["Symptoms", (entities.symptoms || []).join(", ") || "None extracted"],
     ["Mentioned conditions", (entities.mentioned_conditions || []).join(", ") || "None"],
     ["Mentioned medications", (entities.mentioned_medications || []).join(", ") || "None"],
-    ["Notable flags", (entities.notable_flags || []).join(", ") || "None"],
+    ["Risk Factors", (entities.risk_factors || []).join(", ") || "None"],
+    ["Family History", (entities.family_history || []).join(", ") || "None"],
     ["Extraction Confidence", `<span style="background:${confColor}; color:white; padding:2px 8px; border-radius:12px; font-size:0.85em; font-weight:bold;">${confidence.toUpperCase()}</span>`],
   ]);
 
@@ -202,20 +202,26 @@ function renderReport(data) {
   $("recommendationsList").innerHTML = (reasoning.recommendations || [])
     .map((r) => `<li>${r}</li>`).join("") || "<li>No recommendations generated.</li>";
 
-  // NEW: Citations List
+  // FIX: Clear previous citations to prevent duplicates on re-runs
+  const existingCitations = document.querySelector('.citations-append');
+  if (existingCitations) {
+    existingCitations.remove();
+  }
+
   const citations = reasoning.citations || [];
-  const citationsEl = $("citationsList"); // Make sure this ID exists in HTML, or we append to recommendations
   if (citations.length > 0) {
-    const citationsHtml = `
-      <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #e5e7eb;">
-        <h4 style="font-size: 0.85em; text-transform: uppercase; color: #6b7280; margin-bottom: 10px;">Sources & Citations</h4>
-        <ul style="list-style-type: none; padding-left: 0;">
-          ${citations.map(c => `<li style="font-size: 0.9em; color: #4b5563; margin-bottom: 6px;">📄 ${c}</li>`).join("")}
-        </ul>
-      </div>
+    const citationsDiv = document.createElement('div');
+    citationsDiv.className = 'citations-append';
+    citationsDiv.style.marginTop = '20px';
+    citationsDiv.style.paddingTop = '15px';
+    citationsDiv.style.borderTop = '1px solid #e5e7eb';
+    citationsDiv.innerHTML = `
+      <h4 style="font-size: 0.85em; text-transform: uppercase; color: #6b7280; margin-bottom: 10px;">Sources & Citations</h4>
+      <ul style="list-style-type: none; padding-left: 0;">
+        ${citations.map(c => `<li style="font-size: 0.9em; color: #4b5563; margin-bottom: 6px;">📄 ${c}</li>`).join("")}
+      </ul>
     `;
-    // Append citations to the recommendations list container
-    $("recommendationsList").parentElement.innerHTML += citationsHtml;
+    $("recommendationsList").parentElement.appendChild(citationsDiv);
   }
 
   $("traceLog").textContent = (data.trace || []).join("\n");
