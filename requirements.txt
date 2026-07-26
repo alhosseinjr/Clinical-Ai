@@ -85,9 +85,7 @@ uvicorn==0.51.0
 uvloop==0.22.1
 watchfiles==1.2.0
 websockets==15.0.1
-xgboost==2.0.3
 xxhash==3.8.1
 yarl==1.24.5
 zstandard==0.25.0
-sentence-transformers>=2.2.0
 streamlit>=1.28.0
