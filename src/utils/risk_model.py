@@ -101,8 +101,8 @@ class RiskModel:
         self.clf = self.pipeline.named_steps["clf"]
         self.scaler = self.pipeline.named_steps["scaler"]
 
-            def predict(self, patient: dict) -> dict:
-            # Safely attempt to enhance features with NLP entities
+    def predict(self, patient: dict) -> dict:
+        # Safely attempt to enhance features with NLP entities
         entities = patient.get("extracted_entities", {})
         if entities:
             try:
