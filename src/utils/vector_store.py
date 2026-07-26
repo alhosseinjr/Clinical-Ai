@@ -1,16 +1,17 @@
 """
-Lightweight local retriever for the Evidence Retrieval (RAG) agent.
+Semantic local retriever for the Evidence Retrieval (RAG) agent.
 
-Uses TF-IDF + cosine similarity over the guideline .txt files in
-data/guidelines/. This avoids any dependency on downloading embedding
-models, so the project runs fully offline once pip dependencies are
-installed.
+Uses sentence-transformers (all-MiniLM-L6-v2) to encode guidelines and
+queries into dense vectors, then uses cosine similarity to find the most
+relevant snippets. This understands semantic meaning (e.g., "heart attack"
+matches "myocardial infarction") much better than keyword-based TF-IDF.
+
+The model (~80MB) is downloaded automatically on first run and cached locally.
 """
 
 import os
 from typing import List, Dict
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
+from sentence_transformers import SentenceTransformer, util
 
 
 class GuidelineRetriever:
@@ -20,8 +21,17 @@ class GuidelineRetriever:
         self.doc_texts: List[str] = []
         self._load_documents()
 
-        self.vectorizer = TfidfVectorizer(stop_words="english")
-        self.doc_matrix = self.vectorizer.fit_transform(self.doc_texts) if self.doc_texts else None
+        # Load the embedding model (cached locally after first download)
+        # all-MiniLM-L6-v2 is fast, small (~80MB), and high-quality for semantic search
+        print("Loading embedding model (all-MiniLM-L6-v2)...")
+        self.model = SentenceTransformer('all-MiniLM-L6-v2')
+
+        # Encode all documents once during initialization
+        if self.doc_texts:
+            print(f"Encoding {len(self.doc_texts)} guideline documents...")
+            self.doc_embeddings = self.model.encode(self.doc_texts, convert_to_tensor=True)
+        else:
+            self.doc_embeddings = None
 
     def _load_documents(self):
         if not os.path.isdir(self.guidelines_dir):
@@ -36,22 +46,32 @@ class GuidelineRetriever:
 
     def retrieve(self, query: str, top_k: int = 3) -> List[Dict]:
         """Return the top_k most relevant guideline snippets for a query string."""
-        if not self.doc_texts or self.doc_matrix is None:
+        if not self.doc_texts or self.doc_embeddings is None:
             return []
 
-        query_vec = self.vectorizer.transform([query])
-        scores = cosine_similarity(query_vec, self.doc_matrix)[0]
+        # Encode the query
+        query_embedding = self.model.encode(query, convert_to_tensor=True)
 
-        ranked = sorted(zip(self.doc_names, self.doc_texts, scores), key=lambda x: x[2], reverse=True)
+        # Compute cosine similarity between query and all documents
+        cos_scores = util.cos_sim(query_embedding, self.doc_embeddings)[0]
+
+        # Get the top-k highest scoring documents
+        top_results = cos_scores.topk(top_k)
 
         results = []
-        for name, text, score in ranked[:top_k]:
-            if score <= 0:
+        for score, idx in zip(top_results.values, top_results.indices):
+            score_val = score.item()
+            # Only include results with positive similarity
+            if score_val <= 0:
                 continue
+            
+            name = self.doc_names[idx.item()]
+            text = self.doc_texts[idx.item()]
+            
             snippet = text.strip()
             results.append({
                 "source": name,
                 "snippet": snippet[:600] + ("..." if len(snippet) > 600 else ""),
-                "score": round(float(score), 4),
+                "score": round(float(score_val), 4),
             })
         return results

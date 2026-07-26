@@ -1,18 +1,8 @@
 """
-Risk Prediction Agent's ML core.
+Risk Prediction Agent's ML core (Upgraded to Random Forest).
 
-Trains a logistic regression model on the real, public UCI Heart Disease
-dataset (Cleveland Clinic subset -- see data/risk_model/DATASET_INFO.md for
-provenance and column definitions). This replaced an earlier version that
-trained on data generated at runtime from a hand-authored scoring rule;
-that version could never report a meaningful accuracy number because the
-"ground truth" was the same formula being fit. This version trains on real
-labeled outcomes with a held-out test set, so the reported metrics mean
-something.
-
-Still a demo-scale model: 303 rows, single institution, ~40 years old.
-Reported honestly in `outputs/risk_model_eval.md` (run
-`python scripts/train_risk_model.py` to regenerate it).
+Uses Random Forest to capture non-linear relationships between clinical features.
+Trained on the UCI Heart Disease dataset. Stable on Apple Silicon.
 """
 
 import os
@@ -21,7 +11,7 @@ import numpy as np
 import pandas as pd
 from src.state import PipelineState
 from src.utils.clinical_feature_mapper import map_clinical_features
-from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import StandardScaler
@@ -59,15 +49,21 @@ def load_dataset():
 
 
 def train_and_evaluate():
-    """Trains on a stratified 80/20 split and returns (pipeline, metrics_dict)."""
+    """Trains a Random Forest model on a stratified 80/20 split."""
     X, y = load_dataset()
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=RANDOM_STATE, stratify=y
     )
 
+    # Random Forest Pipeline (n_jobs=-1 uses all Mac cores for speed)
     pipeline = Pipeline([
         ("scaler", StandardScaler()),
-        ("clf", LogisticRegression(max_iter=1000, random_state=RANDOM_STATE)),
+        ("clf", RandomForestClassifier(
+            n_estimators=100, 
+            max_depth=5, 
+            random_state=RANDOM_STATE, 
+            n_jobs=-1
+        )),
     ])
     pipeline.fit(X_train, y_train)
 
@@ -106,20 +102,7 @@ class RiskModel:
         self.scaler = self.pipeline.named_steps["scaler"]
 
     def predict(self, patient: dict) -> dict:
-        """
-        Predict cardiovascular risk.
-
-        Accepts:
-        1. Already mapped numeric features
-        2. Patient state containing extracted_entities from NLP agent
-
-        If extracted_entities exist, they are converted into model features
-        using clinical_feature_mapper.
-        """
-
-        # Convert NLP entities -> ML features
         if "extracted_entities" in patient:
-            from src.utils.clinical_feature_mapper import map_clinical_features
             patient = map_clinical_features(patient)
 
         features = np.array(
@@ -137,12 +120,9 @@ class RiskModel:
             else "low"
         )
 
-        # Explain prediction using model coefficients
-        scaled = self.scaler.transform(features)[0]
-
-        contributions = scaled * self.clf.coef_[0]
-
-        top_idx = np.argsort(-np.abs(contributions))[:3]
+        # Random Forest uses Feature Importance (Gini impurity decrease)
+        importances = self.clf.feature_importances_
+        top_idx = np.argsort(-importances)[:3]
 
         top_factors = [
             FEATURE_LABELS[FEATURE_NAMES[i]]

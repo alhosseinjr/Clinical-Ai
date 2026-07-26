@@ -1,9 +1,9 @@
 """
-6. Guideline Verification Agent
+6. Guideline Verification Agent (Hybrid)
 
-Uses Claude to check whether the retrieved evidence snippets are actually
-relevant/consistent with the patient's profile and risk result, and
-produces a short verification note with citations back to source files.
+Uses a local LLM to generate a human-readable summary of the evidence,
+but uses a programmatic safety net based on semantic embedding scores
+to prevent the small LLM from falsely rejecting highly relevant guidelines.
 """
 
 import json
@@ -14,9 +14,13 @@ from src.orchestrator import should_call_guideline_llm
 
 SYSTEM_PROMPT = """You are a guideline verification agent in a clinical
 decision-support pipeline. You receive a patient summary and a list of
-retrieved guideline snippets (each with a source filename). Your job is to
-judge whether the snippets are actually relevant to this patient, and note
-any gaps. Respond ONLY with valid JSON in exactly this shape:
+retrieved guideline snippets. 
+
+IMPORTANT: 
+1. Medical synonyms are common. For example, "GERD" is the same as "Gastroesophageal Reflux Disease". "Heart attack" is "Myocardial infarction". If a snippet discusses a synonym of the patient's condition, it IS relevant.
+2. The 'Score' is a semantic similarity score (0.0 to 1.0). A score above 0.35 usually indicates strong relevance. Trust high scores.
+
+Your job is to judge whether the snippets are actually relevant to this patient. Respond ONLY with valid JSON in exactly this shape:
 
 {
   "aligned": true | false,
@@ -37,8 +41,6 @@ def _mock_response(evidence):
 
 
 def _no_evidence_response() -> dict:
-    """Deterministic result when retrieval returned nothing -- there's no
-    relevance judgment to make, so skip the generation pass."""
     return {
         "aligned": False,
         "notes": "No evidence was retrieved -- verification skipped.",
@@ -55,6 +57,7 @@ def run(state: PipelineState) -> dict:
     if not should_call_guideline_llm(evidence):
         verification = _no_evidence_response()
     else:
+        # Sort by the new semantic score
         top_evidence = sorted(
             evidence,
             key=lambda x: x.get("score", 0),
@@ -82,10 +85,9 @@ Retrieved evidence:
             user_prompt=user_prompt,
             mock=mock,
             mock_response=_mock_response(evidence),
-            max_tokens=180,
+            max_tokens=200, # Slightly more tokens for better reasoning
         )
 
-        # Single call replaces the entire try/regex/fallback block
         verification = parse_llm_json(
             raw_output,
             default={
@@ -102,22 +104,35 @@ Retrieved evidence:
             if isinstance(e.get("source"), str)
         }
 
-        # Filter and deduplicate citations
+        # Filter and deduplicate citations from LLM
         citations = sorted({
             c
             for c in verification.get("citations", [])
             if isinstance(c, str) and c in allowed_sources
         })
 
-        # Validate notes
         notes = verification.get("notes")
         if not isinstance(notes, str) or not notes.strip():
             notes = "Insufficient evidence."
 
-        # Derive aligned from citations
-        aligned = bool(citations)
+        # --- THE SAFETY NET (Hybrid Logic) ---
+        # Small LLMs often falsely reject good evidence due to strictness.
+        # If the LLM found no citations, but our semantic embedding model 
+        # found a strong match (score > 0.35), we trust the math instead.
+        if not citations:
+            threshold = 0.35
+            fallback_citations = [
+                e["source"] for e in top_evidence
+                if e.get("score", 0) >= threshold
+            ]
+            if fallback_citations:
+                citations = sorted(set(fallback_citations))
+                aligned = True
+                notes = f"Auto-verified: High semantic relevance detected (score >= {threshold}). The model may have missed synonym matches."
+        else:
+            aligned = bool(citations)
+        # -------------------------------------
 
-        # Build sanitized verification object
         sanitized = {
             "aligned": aligned,
             "notes": notes,
@@ -135,10 +150,5 @@ Retrieved evidence:
         f"citations={len(verification['citations'])} "
         f"aligned={verification['aligned']}"
     ]
-
-    if len(evidence) > 5:
-        trace.append(
-            f"[Guideline Verification Agent] Using top 5 of {len(evidence)} retrieved documents."
-        )
 
     return {"guideline_verification": verification, "trace": trace}

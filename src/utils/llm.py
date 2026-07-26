@@ -1,31 +1,13 @@
 """
 Local LLM wrapper used by every LLM-backed agent.
-
-Replaces the previous Anthropic API client with a locally fine-tuned model
-(Qwen2.5-0.5B-Instruct + a LoRA adapter trained on this project's clinical
-tasks -- see finetune/). No network calls, no API key.
-
-Loads (in priority order):
-  1. MERGED_MODEL_PATH, if set and it exists  -- a merged standalone model
-     produced by finetune/scripts/merge_lora.py
-  2. BASE_MODEL_ID + LORA_ADAPTER_PATH, if the adapter directory exists --
-     base model with the LoRA adapter applied on top
-  3. Otherwise: no model available -- every call falls back to mock mode
-     automatically (with a clear message), so the pipeline is always
-     runnable even before you've trained the adapter.
-
-Model loading now also picks a device-appropriate dtype: fp32 on every
-device works but wastes ~2x the memory bandwidth and compute on GPU/MPS,
-which is where this actually matters for latency. CPU stays fp32 since
-most CPU kernels don't have a fast low-precision path. Generation with an
-identical (system_prompt, user_prompt, max_tokens) triple is memoized
-in-process, since repeated demo/dev runs against the same patient
-otherwise regenerate byte-identical output.
 """
 
 import hashlib
 import os
+import torch
 from typing import Optional
+
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
 _model = None
 _tokenizer = None
@@ -36,46 +18,37 @@ _response_cache: dict = {}
 
 
 def _pick_device() -> str:
-    # import torch
-    # if torch.backends.mps.is_available():
-    #     return "mps"
-    # if torch.cuda.is_available():
-    #     return "cuda"
-    return "mps"
+    if torch.backends.mps.is_available():
+        return "mps"
+    if torch.cuda.is_available():
+        return "cuda"
+    return "cpu"
 
 
 def _pick_dtype(device: str):
-    """fp32 on CPU (safe default, no real speed win from fp16 there for
-    most kernels); bf16 on CUDA when the GPU supports it (numerically more
-    stable than fp16, no loss-scaling needed); fp16 otherwise on CUDA/MPS,
-    since bf16 support on MPS is inconsistent across torch/macOS versions."""
-    import torch
     if device == "cpu":
         return torch.float32
     if device == "mps":
         return torch.bfloat16
-    if device == "cuda" and torch.cuda.is_bf16_supported():
+    if device == "cuda":
+        if torch.cuda.is_bf16_supported():
             return torch.bfloat16
+        return torch.float16
+    return torch.float32
 
 
 def _load_model():
-    """Lazily loads the local model on first real (non-mock) call."""
+    """Lazily loads the local model."""
     global _model, _tokenizer, _device, _dtype, _model_unavailable_reason
 
     if _model is not None or _model_unavailable_reason is not None:
-        return
+        return _model
 
-    merged_path = os.environ.get("MERGED_MODEL_PATH", "models/clinical-llm-merged")
+    merged_path = os.environ.get("MERGED_MODEL_PATH", "models/clinical-3b-merged")
     adapter_path = os.environ.get("LORA_ADAPTER_PATH", "models/clinical-lora-adapter")
-    
-    # Change this line:
     base_model_id = os.environ.get("BASE_MODEL_ID", "models/Qwen2.5-3B-Instruct")
 
     try:
-        import torch
-        from transformers import AutoModelForCausalLM, AutoTokenizer
-        from peft import PeftModel
-
         _device = _pick_device()
         _dtype = _pick_dtype(_device)
 
@@ -84,7 +57,7 @@ def _load_model():
         # 1. Try Merged Model
         if os.path.isdir(merged_path) and os.path.exists(os.path.join(merged_path, "config.json")):
             print(f"Loading merged model from {merged_path}...")
-            _tokenizer = AutoTokenizer.from_pretrained(merged_path)
+            _tokenizer = AutoTokenizer.from_pretrained(merged_path, trust_remote_code=True)
             _model = AutoModelForCausalLM.from_pretrained(merged_path, torch_dtype=_dtype, device_map="auto")
             print("Merged model loaded.")
 
@@ -92,34 +65,30 @@ def _load_model():
         elif os.path.isdir(adapter_path):
             print(f"Loading LoRA adapter from {adapter_path}...")
             print(f"Loading base model: {base_model_id}...")
-            _tokenizer = AutoTokenizer.from_pretrained(base_model_id)
+            _tokenizer = AutoTokenizer.from_pretrained(base_model_id, trust_remote_code=True)
             base = AutoModelForCausalLM.from_pretrained(base_model_id, torch_dtype=_dtype, device_map="auto")
+            from peft import PeftModel
             _model = PeftModel.from_pretrained(base, adapter_path)
             print("Base model + LoRA adapter loaded.")
             
-        # 3. FALLBACK: Just load the Base Model (This is what we need now!)
+        # 3. FALLBACK: Just load the Base Model
         else:
             print(f"No adapter found. Loading raw base model: {base_model_id}...")
-            print("(This will download ~2GB on the first run. Please wait...)")
-            _tokenizer = AutoTokenizer.from_pretrained(base_model_id)
+            # CRITICAL: Do NOT use fix_mistral_regex=True here. It breaks Qwen tokenizers.
+            _tokenizer = AutoTokenizer.from_pretrained(base_model_id, trust_remote_code=True)
             _model = AutoModelForCausalLM.from_pretrained(base_model_id, torch_dtype=_dtype, device_map="auto")
             print("Base model loaded successfully!")
 
         _model.eval()
         print("✅ Model ready for inference!")
+        return _model
 
     except Exception as e:
         _model_unavailable_reason = f"Local model failed to load: {str(e)}"
         print(f"❌ Error loading model: {e}")
-
-        _model.eval()
-        print("✅ Model ready for inference!")
-
-    except Exception as e:
-        _model_unavailable_reason = f"Local model failed to load: {str(e)}"
-        print(f" Error loading model: {e}")
         import traceback
         traceback.print_exc()
+        return None
 
 
 def _cache_key(system_prompt: str, user_prompt: str, max_tokens: int) -> str:
@@ -139,74 +108,48 @@ def call_llm(
     mock_response: Optional[str] = None,
     max_tokens: int = 500,
 ) -> str:
-    """
-    Runs the local fine-tuned model on a system + user prompt and returns
-    the generated text.
-
-    If mock=True, or no local model is available, no inference is run --
-    `mock_response` (or a generic placeholder) is returned instead. Each
-    agent supplies its own sensible mock_response so the pipeline stays
-    meaningfully testable without a trained model.
-
-    Real (non-mock) calls are memoized in-process by (system_prompt,
-    user_prompt, max_tokens): decoding is deterministic (do_sample=False),
-    so an identical prompt always produces identical output, and re-running
-    the same patient (dev loop, retries, demos) skips the generation pass
-    entirely on a cache hit.
-    """
+    """Calls the local LLM with the given prompts."""
     if mock:
-        return mock_response or "[MOCK MODE] Local model call skipped -- returning placeholder output."
+        return mock_response or "[MOCK MODE]"
+    
+    # Check cache
+    key = _cache_key(system_prompt, user_prompt, max_tokens)
+    if key in _response_cache:
+        return _response_cache[key]
 
-    _load_model()
-
-    if _model is None:
-        return mock_response or f"[MOCK MODE] {_model_unavailable_reason}"
-
-    cache_key = _cache_key(system_prompt, user_prompt, max_tokens)
-    cached = _response_cache.get(cache_key)
-    if cached is not None:
-        return cached
-
-    import torch
-
+    model = _load_model()
+    if model is None:
+        return f"[MOCK MODE] {_model_unavailable_reason}"
+    
+    # Use Qwen's built-in chat template
     messages = [
         {"role": "system", "content": system_prompt},
-        {"role": "user", "content": user_prompt},
+        {"role": "user", "content": user_prompt}
     ]
-    prompt_text = _tokenizer.apply_chat_template(
-        messages, tokenize=False, add_generation_prompt=True
+    
+    input_text = _tokenizer.apply_chat_template(
+        messages, 
+        tokenize=False, 
+        add_generation_prompt=True
     )
-    inputs = _tokenizer(prompt_text, return_tensors="pt").to(_device)
-
-    with torch.no_grad():
-        output_ids = _model.generate(
+    
+    inputs = _tokenizer(input_text, return_tensors="pt").to(_device)
+    
+    # GREEDY DECODING - strictly no sampling to prevent garbage output
+    with torch.inference_mode():
+        outputs = model.generate(
             **inputs,
             max_new_tokens=max_tokens,
-            do_sample=False,
-            num_beams=1,
-            repetition_penalty=1.1,
-            no_repeat_ngram_size=3,
-            use_cache=True,
+            do_sample=False,      # CRITICAL: Must be False for JSON
+            repetition_penalty=1.1, # Helps prevent repeating the same token (like !!!)
             eos_token_id=_tokenizer.eos_token_id,
-            pad_token_id=_tokenizer.eos_token_id,
+            pad_token_id=_tokenizer.pad_token_id if _tokenizer.pad_token_id is not None else _tokenizer.eos_token_id,
         )
-
-    generated = output_ids[0][inputs["input_ids"].shape[1]:]
-    text = _tokenizer.decode(generated, skip_special_tokens=True)
-    text = text.strip()
-
-    # Remove markdown fences if the model emits them
-    text = text.replace("```json", "")
-    text = text.replace("```", "")
-    text = text.strip()
-
-    # --- DEBUG PRINT STATEMENT ---
-    print("\n" + "="*60)
-    print(f"RAW MODEL OUTPUT (max_tokens={max_tokens}):")
-    print("-"*60)
-    print(text)
-    print("="*60 + "\n")
-    # -----------------------------
-
-    _response_cache[cache_key] = text
-    return text
+    
+    # Decode only the new tokens
+    input_length = inputs['input_ids'].shape[1]
+    generated_tokens = outputs[0][input_length:]
+    response = _tokenizer.decode(generated_tokens, skip_special_tokens=True).strip()
+    
+    _response_cache[key] = response
+    return response

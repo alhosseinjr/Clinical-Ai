@@ -11,37 +11,20 @@ from src.state import PipelineState
 from src.utils.llm import call_llm
 from src.utils.llm_parser import parse_llm_json
 
-SYSTEM_PROMPT = """
-You are the Clinical Reasoning Agent.
+SYSTEM_PROMPT = """You are a clinical reasoning agent. Synthesize the patient profile, risk result, evidence, and drug safety checks into a final assessment.
 
-Use ONLY the supplied pipeline outputs.
-
-Never invent:
-- diagnoses
-- medications
-- symptoms
-- laboratory findings
-- imaging findings
-- family history
-- treatments
-
-If evidence is insufficient, state:
-"Insufficient evidence to support additional conclusions."
-
-Recommendations must come ONLY from:
-- patient profile
-- drug safety
-- verified guideline
-- retrieved evidence
-
-Return ONLY valid JSON:
-
+Respond ONLY with valid JSON in exactly this shape:
 {
-  "assessment":"2-4 sentence summary",
-  "recommendations":["..."],
-  "priority":"routine|elevated|urgent"
+  "assessment": "1-2 sentence summary of the patient's status.",
+  "recommendations": ["Recommendation 1", "Recommendation 2"],
+  "priority": "routine",
+  "citations": ["Source: Risk Model indicates high cardiovascular risk.", "Source: Retrieved guidelines suggest lifestyle changes for obesity."]
 }
-"""
+
+Rules:
+- 'priority' must be one of: "routine", "urgent", "emergent".
+- 'citations' must be a list of 2-3 strings explaining where your key recommendations came from (e.g., Risk Model, Guidelines, Drug Safety check).
+- Do not include any text outside the JSON."""
 
 
 def _mock_response():

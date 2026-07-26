@@ -2,14 +2,14 @@
 // Talks to the FastAPI backend (/api/*) and drives the stage rail + report panel.
 
 const STAGES = [
-  { key: "intake",      label: "Patient intake" },
-  { key: "nlp",         label: "Medical NLP" },
-  { key: "risk",        label: "Risk prediction (ML)" },
-  { key: "retrieval",   label: "Evidence retrieval (RAG)" },
+  { key: "intake", label: "Patient intake" },
+  { key: "nlp", label: "Medical NLP" },
+  { key: "risk", label: "Risk prediction (ML)" },
+  { key: "retrieval", label: "Evidence retrieval (RAG)" },
   { key: "drug_safety", label: "Drug safety" },
-  { key: "guideline",   label: "Guideline verification" },
-  { key: "reasoning",   label: "Clinical reasoning" },
-  { key: "report",      label: "Report generation" },
+  { key: "guideline", label: "Guideline verification" },
+  { key: "reasoning", label: "Clinical reasoning" },
+  { key: "report", label: "Report generation" },
 ];
 
 const $ = (id) => document.getElementById(id);
@@ -133,15 +133,18 @@ function renderReport(data) {
   $("patientName").textContent = `${profile.name || "Unknown"} · ${profile.patient_id || ""}`;
   $("patientMeta").textContent = `${profile.age ?? "—"} yr · ${profile.sex ?? "—"} · ${(profile.comorbidities || []).join(", ") || "no listed comorbidities"}`;
 
+  // --- RISK SCORE UI ---
   const rClass = riskClass(risk.risk_category);
   const riskValueEl = $("riskValue");
-  riskValueEl.textContent = (risk.risk_category || "—").toUpperCase();
+  const percentage = Math.round((risk.risk_score || 0) * 100);
+  riskValueEl.textContent = `${percentage}%`;
   riskValueEl.className = `risk-badge__value ${rClass}`;
 
   const fillEl = $("riskbarFill");
   fillEl.className = `riskbar__fill ${rClass}`;
   fillEl.style.width = `${Math.round((risk.risk_score || 0) * 100)}%`;
 
+  // --- PROFILE & ENTITIES ---
   renderDefList($("profileList"), [
     ["Smoker", profile.smoker ? "Yes" : "No"],
     ["Current medications", (profile.current_medications || []).join(", ") || "None listed"],
@@ -149,15 +152,21 @@ function renderReport(data) {
     ["BMI", profile.vitals?.bmi ?? "—"],
   ]);
 
+  // NEW: Confidence Badge Logic
+  const confidence = entities.extraction_confidence || "medium"; // Default to medium if missing
+  const confColor = confidence === "high" ? "#10b981" : confidence === "low" ? "#ef4444" : "#f59e0b";
+
   renderDefList($("entitiesList"), [
     ["Symptoms", (entities.symptoms || []).join(", ") || "None extracted"],
     ["Mentioned conditions", (entities.mentioned_conditions || []).join(", ") || "None"],
     ["Mentioned medications", (entities.mentioned_medications || []).join(", ") || "None"],
     ["Notable flags", (entities.notable_flags || []).join(", ") || "None"],
+    ["Extraction Confidence", `<span style="background:${confColor}; color:white; padding:2px 8px; border-radius:12px; font-size:0.85em; font-weight:bold;">${confidence.toUpperCase()}</span>`],
   ]);
 
   renderTags($("riskFactors"), risk.top_factors || []);
 
+  // --- DRUG SAFETY ---
   const alerts = drugSafety.interactions || [];
   const alertsEl = $("drugAlerts");
   if (alerts.length === 0) {
@@ -168,6 +177,7 @@ function renderReport(data) {
     `).join("");
   }
 
+  // --- EVIDENCE ---
   const evEl = $("evidenceList");
   if (evidence.length === 0) {
     evEl.innerHTML = `<p class="prose">No relevant evidence retrieved.</p>`;
@@ -183,12 +193,29 @@ function renderReport(data) {
   $("verificationNotes").textContent = verification.notes || "—";
   renderTags($("verificationCitations"), verification.citations || []);
 
+  // --- CLINICAL REASONING & CITATIONS ---
   const chip = $("priorityChip");
   chip.textContent = (reasoning.priority || "—").toUpperCase();
   chip.className = `priority-chip ${priorityClass(reasoning.priority)}`;
   $("assessmentText").textContent = reasoning.assessment || "—";
   $("recommendationsList").innerHTML = (reasoning.recommendations || [])
     .map((r) => `<li>${r}</li>`).join("") || "<li>No recommendations generated.</li>";
+
+  // NEW: Citations List
+  const citations = reasoning.citations || [];
+  const citationsEl = $("citationsList"); // Make sure this ID exists in HTML, or we append to recommendations
+  if (citations.length > 0) {
+    const citationsHtml = `
+      <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #e5e7eb;">
+        <h4 style="font-size: 0.85em; text-transform: uppercase; color: #6b7280; margin-bottom: 10px;">Sources & Citations</h4>
+        <ul style="list-style-type: none; padding-left: 0;">
+          ${citations.map(c => `<li style="font-size: 0.9em; color: #4b5563; margin-bottom: 6px;">📄 ${c}</li>`).join("")}
+        </ul>
+      </div>
+    `;
+    // Append citations to the recommendations list container
+    $("recommendationsList").parentElement.innerHTML += citationsHtml;
+  }
 
   $("traceLog").textContent = (data.trace || []).join("\n");
 }

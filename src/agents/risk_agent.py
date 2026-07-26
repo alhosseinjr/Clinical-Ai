@@ -71,9 +71,17 @@ def run(state: PipelineState) -> dict:
             features[name] = float(val)
 
     # Enhance structured features using NLP extraction
-    nlp_features = map_clinical_features(
-        state.get("extracted_entities", {})
-    )
+    # NOTE: 'risk' runs in parallel with 'nlp', so extracted_entities 
+    # might not exist yet. We safely skip this if it's missing or incomplete.
+    nlp_features = {}
+    entities = state.get("extracted_entities")
+    
+    if entities:
+        try:
+            nlp_features = map_clinical_features(entities)
+        except Exception:
+            # If the mapper fails because entities are incomplete, just use base features
+            pass
 
     for key, value in nlp_features.items():
         if key in features:
