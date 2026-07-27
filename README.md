@@ -41,6 +41,19 @@ The interesting part isn't any single agent. It's the architecture: agents that 
 
 ---
 
+## 💼 Business & Clinical Value
+
+This is a portfolio demo, not a validated product — no clinical trials, no regulatory clearance, no measured deployment outcomes. What it does demonstrate is the *architecture* behind the value drivers a real health-tech buyer or clinical team actually cares about:
+
+- **Cognitive load reduction**: instead of a clinician manually cross-referencing a patient's notes, risk factors, relevant guidelines, and medication list, the pipeline pulls all four into one structured, cited report in seconds. That's the actual workflow bottleneck clinical decision support tools are meant to address.
+- **A specific, named answer to the AI liability question**: healthcare buyers' biggest objection to LLM-based tools is hallucination risk. The hybrid guideline-verification safety net — overriding a falsely-strict LLM rejection with a logged semantic-similarity score — is a concrete, inspectable answer to "how do you keep the model from silently dropping or fabricating evidence," not just a claim that the system is "hallucination-resistant."
+- **Auditability**: every citation traces back to either an LLM judgment or an explicit programmatic override, and every recommendation is filtered against upstream state before reaching the report. That trace is the kind of artifact a clinical safety or compliance review actually asks for.
+- **Data locality by default**: fully local inference means patient data never leaves the machine and there's no per-query API cost — relevant both for HIPAA-style data-residency requirements and for deployment in low-connectivity or resource-constrained settings (rural clinics, field medicine) where "call an external API" isn't an option at all, not just a preference.
+- **Low marginal cost to extend scope**: adding a clinical specialty means dropping a `.txt` guideline file or a JSON interaction pair — not retraining the fine-tuned model or restructuring the pipeline. That maps directly to the "how expensive is it to expand coverage" question a product roadmap discussion would raise.
+- **Honest evaluation as a trust signal, not a weakness**: reporting a 0.714 recall plainly, alongside the dataset's real limitations, is what a clinical or compliance stakeholder needs to make an informed risk decision — a demo that oversells its numbers is a liability the moment someone checks; one that discloses them up front is the beginning of an actual trust relationship.
+
+---
+
 ## 🏗️ Architecture
 
 The pipeline used to be a strict linear chain (Intake → NLP → Risk → Retrieval → Drug Safety → Guideline → Reasoning → Report). It's now wired to match actual data dependencies, which turns an 8-hop critical path into 5:
